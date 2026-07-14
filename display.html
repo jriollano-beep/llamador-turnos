@@ -1,70 +1,235 @@
-import { render } from "preact";
-import { useState } from "preact/hooks";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Turnos — JA Riollano</title>
+<style>
+  :root{
+    --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
+    --ink:#243b2b; --muted:#6b7f72; --card:#ffffff;
+    --bg:#eef4ef; --line:#e4ece6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Segoe UI",-apple-system,Roboto,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); overflow:hidden; user-select:none;
+  }
+  .screen{height:100vh; display:flex; flex-direction:column;}
+  .main{flex:1; display:grid; grid-template-columns:1.35fr 1fr; gap:22px; padding:26px 30px 14px;}
+  .card{background:var(--card); border-radius:22px; box-shadow:0 8px 26px rgba(20,90,50,.06);}
 
-/**
- * BOTÓN "LLAMAR SIGUIENTE" dentro de Shopify POS
- * ------------------------------------------------
- * El cajero toca este botón en la pantalla de inicio de POS (smart grid) y se
- * anuncia su caja en el monitor de la fila, SIN salir de la app.
- *
- * Cada iPad se identifica solo por el NOMBRE DE DISPOSITIVO de POS:
- *   Ajustes de POS -> Dispositivo -> ponle de nombre  "Caja 1", "Caja 2", ...
- * El código toma el número de ese nombre. Así la MISMA extensión sirve para las
- * 6 cajas sin configurar nada por iPad.
- */
+  /* ---------- IZQUIERDA ---------- */
+  .left{display:flex; flex-direction:column; gap:18px;}
+  .logo-img{width:min(100%,420px); height:auto; display:block;}
+  .logo-wrap{display:flex; flex-direction:column; align-items:center; gap:6px; padding-top:6px;}
+  .logo{display:flex; align-items:center; gap:12px;}
+  .logo .ja{background:var(--green); color:#fff; font-weight:900; font-size:34px; padding:6px 12px; border-radius:8px; letter-spacing:-1px; line-height:1;}
+  .logo .name{font-weight:900; font-size:48px; color:var(--green); letter-spacing:1px; position:relative;}
+  .logo .name .pencil{position:absolute; right:-6px; top:-14px; font-size:22px; transform:rotate(35deg);}
+  .logo .tm{font-size:13px; vertical-align:super; color:var(--green);}
+  .tagline{font-weight:800; letter-spacing:4px; font-size:14px; color:var(--ink); opacity:.75;}
 
-// 👉 CAMBIA esto por la dirección pública (HTTPS) de tu servidor de turnos.
-//    Ej: "https://turnos.mitienda.com"  (ver README-OPCION-C.md, paso "Hospedar").
-const SERVIDOR = "https://TU-SERVIDOR.com";
+  .turno-box{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:10px; width:100%; text-align:center;}
+  .section-title{display:flex; align-items:center; gap:18px; color:var(--ink); font-weight:800; letter-spacing:4px; font-size:30px; text-transform:uppercase;}
+  .section-title::before,.section-title::after{content:""; height:4px; width:66px; background:var(--green); border-radius:3px;}
+  .turno-num{font-weight:900; color:var(--green); line-height:.78; font-size:min(34vw,360px); text-align:center; text-shadow:0 8px 34px rgba(31,162,78,.20); white-space:nowrap;}
+  .turno-num small{font-size:.26em; color:var(--ink); font-weight:800; letter-spacing:5px; display:block; opacity:.72; line-height:1; margin-bottom:.06em;}
+  .turno-idle{color:var(--muted); opacity:.5;}
 
-// Obtiene el número de caja a partir del nombre del dispositivo POS ("Caja 3" -> "3")
-function numeroDeCaja(): string {
-  const nombre = (shopify?.device?.name || "").toString();
-  const m = nombre.match(/\d+/);
-  return m ? m[0] : "";
-}
+  .banner{display:flex; align-items:center; justify-content:center; gap:12px; background:var(--green-l); color:var(--green-d); font-weight:700; font-size:20px; padding:16px 22px; border-radius:16px; width:100%;}
+  .banner svg{width:26px; height:26px; fill:var(--green);}
 
-export default async () => {
-  render(<TileLlamador />, document.body);
-};
+  .areas{display:flex; justify-content:space-around; gap:8px; padding:6px 4px 2px;}
+  .area{display:flex; flex-direction:column; align-items:center; gap:8px; width:20%;}
+  .area .ic{width:56px; height:56px; border:2px solid var(--green); border-radius:50%; display:flex; align-items:center; justify-content:center;}
+  .area .ic svg{width:28px; height:28px; stroke:var(--green); fill:none; stroke-width:2;}
+  .area .lbl{font-size:12px; font-weight:700; color:var(--ink); text-align:center; letter-spacing:.5px; line-height:1.2;}
 
-function TileLlamador() {
-  const [enviando, setEnviando] = useState(false);
-  const caja = numeroDeCaja();
+  /* ---------- DERECHA ---------- */
+  .right{display:flex; flex-direction:column; gap:20px;}
+  .recientes{flex:1.3; padding:20px 22px; display:flex; flex-direction:column;}
+  .rec-title{color:var(--green); text-align:right; letter-spacing:3px;}
+  .rec-title{display:flex; align-items:center; justify-content:flex-end; gap:14px; font-weight:800; font-size:20px; text-transform:uppercase; margin-bottom:6px;}
+  .rec-title::before{content:""; height:3px; width:40px; background:var(--green); border-radius:3px;}
+  .rec-list{flex:1; display:flex; flex-direction:column;}
+  .rec-row{flex:1; display:flex; align-items:center; gap:20px; border-bottom:1px solid var(--line); padding:4px 6px;}
+  .rec-row:last-child{border-bottom:none;}
+  .rec-code{font-weight:900; font-size:34px; color:var(--green); min-width:150px;}
+  .rec-area{font-size:18px; font-weight:600; color:var(--muted); letter-spacing:.5px;}
+  .rec-empty{flex:1; display:flex; align-items:center; justify-content:center; color:var(--muted); opacity:.5; font-size:18px;}
 
-  async function llamar() {
-    if (enviando) return;
-    if (!caja) {
-      shopify.toast.show(
-        "Ponle nombre a este dispositivo en Ajustes de POS: 'Caja 1', 'Caja 2'…",
-        { duration: 5000 }
-      );
-      return;
-    }
-    setEnviando(true);
-    try {
-      const r = await fetch(`${SERVIDOR}/call?caja=${encodeURIComponent(caja)}`, {
-        method: "GET",
-      });
-      if (r.ok) {
-        shopify.toast.show(`Llamado: Caja ${caja} ✓`);
-      } else {
-        shopify.toast.show(`No se pudo anunciar (error ${r.status})`);
-      }
-    } catch (e) {
-      shopify.toast.show("Sin conexión con la pantalla de turnos");
-    } finally {
-      setTimeout(() => setEnviando(false), 1200);
-    }
+  .horario{padding:20px 22px; background:var(--green-l); border-radius:22px;}
+  .horario h3{display:flex; align-items:center; gap:10px; color:var(--green-d); letter-spacing:2px; font-size:17px; text-transform:uppercase; margin-bottom:12px;}
+  .horario h3 svg{width:22px; height:22px; stroke:var(--green-d); fill:none; stroke-width:2;}
+  .horario .item{margin-bottom:10px;}
+  .horario .k{font-weight:800; color:var(--ink); font-size:16px;}
+  .horario .v{color:var(--muted); font-size:15px;}
+  .horario hr{border:none; border-top:1px solid #d3e6da; margin:10px 0;}
+
+  /* ---------- FOOTER ---------- */
+  .footer{background:var(--green); color:#fff; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:16px 34px;}
+  .foot-date{display:flex; align-items:center; gap:12px;}
+  .foot-date svg{width:30px; height:30px; stroke:#fff; fill:none; stroke-width:2;}
+  .foot-date .d{font-weight:700; font-size:17px;}
+  .foot-date .t{font-size:15px; opacity:.9;}
+  .foot-mid{text-align:center;}
+  .foot-mid .a{font-weight:800; font-size:19px;}
+  .foot-mid .b{font-size:14px; opacity:.9;}
+  .foot-right{display:flex; align-items:center; justify-content:flex-end; gap:14px; font-weight:700;}
+  .foot-right .soc{display:flex; gap:8px;}
+  .foot-right .soc span{width:30px; height:30px; border:2px solid #fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px;}
+
+  /* Overlay activar */
+  #start{position:fixed; inset:0; background:var(--bg); z-index:60; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px;}
+  #start h1{font-size:2rem; color:var(--green-d);}
+  #start p{color:var(--muted); max-width:520px; text-align:center; line-height:1.5;}
+  #start button{font-size:1.5rem; padding:20px 50px; border:none; border-radius:16px; background:var(--green); color:#fff; font-weight:800; cursor:pointer;}
+  #dot{position:fixed; top:12px; right:14px; width:11px; height:11px; border-radius:50%; background:#f59e0b; box-shadow:0 0 10px #f59e0b; z-index:5;}
+  #dot.on{background:var(--green); box-shadow:0 0 10px var(--green);}
+</style>
+</head>
+<body>
+  <div id="start">
+    <h1>Pantalla de Turnos — JA Riollano</h1>
+    <p>Presiona el botón para activar el sonido y la voz. Deja esta pantalla abierta en el monitor de la fila.</p>
+    <button id="startBtn">▶ Activar pantalla</button>
+  </div>
+
+  <span id="dot"></span>
+
+  <div class="screen">
+    <div class="main">
+      <!-- IZQUIERDA -->
+      <div class="left card" style="padding:22px 26px;">
+        <div class="logo-wrap">
+          <img class="logo-img" alt="JA Riollano" src="/logo.png" />
+          <div class="tagline">MÁS DE LO QUE IMAGINAS</div>
+        </div>
+
+        <div class="turno-box">
+          <div class="section-title">Turno actual</div>
+          <div class="turno-num turno-idle" id="turno"><small>&nbsp;</small>—</div>
+          <div class="banner">
+            <svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a3.5 3.5 0 00-2-3.15v6.3a3.5 3.5 0 002-3.15z"/></svg>
+            <span id="bannerTxt">Por favor, pase a la caja indicada.</span>
+          </div>
+        </div>
+
+        <div class="areas">
+          <div class="area"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 12h11l2-8H6"/></svg></div><div class="lbl">TIENDA</div></div>
+          <div class="area"><div class="ic"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V4h12"/></svg></div><div class="lbl">COPIAS E<br>IMPRESIONES</div></div>
+          <div class="area"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/></svg></div><div class="lbl">DESPACHO</div></div>
+          <div class="area"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h3l3 12"/><circle cx="11" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M8 8h12l-1.5 8H10"/></svg></div><div class="lbl">ENTREGAS<br>MAYORISTAS</div></div>
+        </div>
+      </div>
+
+      <!-- DERECHA -->
+      <div class="right">
+        <div class="recientes card">
+          <div class="rec-title">Turnos recientes</div>
+          <div class="rec-list" id="recList">
+            <div class="rec-empty">Aún no hay llamados</div>
+          </div>
+        </div>
+
+        <div class="horario">
+          <h3><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Horario de servicio</h3>
+          <div class="item"><div class="k">Lunes a Sábado</div><div class="v">8:00 a.m. – 4:30 p.m.</div></div>
+          <hr>
+          <div class="item"><div class="k">Copias e Impresiones</div><div class="v">8:00 a.m. – 4:00 p.m. &nbsp;|&nbsp; Cerrado 11:00 a.m. – 12:00 p.m.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="foot-date">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <div><div class="d" id="fDate">—</div><div class="t" id="fTime">—</div></div>
+      </div>
+      <div class="foot-mid">
+        <div class="a">¡Gracias por su visita!</div>
+      </div>
+      <div class="foot-right">
+        <div class="soc"><span>f</span><span>◎</span><span>🌐</span></div>
+        <span>jariollano.com</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const turnoEl=document.getElementById("turno");
+  const bannerTxt=document.getElementById("bannerTxt");
+  const recList=document.getElementById("recList");
+  const dot=document.getElementById("dot");
+  const fDate=document.getElementById("fDate");
+  const fTime=document.getElementById("fTime");
+  const recientes=[];
+
+  function frase(caja){ return "Caja " + caja + ", pase por favor"; }
+
+  // ---- Reloj / fecha (zona America/La_Paz) ----
+  function tick(){
+    try{
+      const now=new Date();
+      fDate.textContent=new Intl.DateTimeFormat("es-BO",{timeZone:"America/La_Paz",day:"numeric",month:"long",year:"numeric"}).format(now);
+      let h=Number(new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",hour:"numeric",hour12:false}).format(now));
+      const m=new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",minute:"2-digit"}).format(now).padStart(2,"0");
+      const ap=h<12?"a.m.":"p.m."; let hh=h%12; if(hh===0) hh=12;
+      fTime.textContent=hh+":"+m+" "+ap;
+    }catch(e){}
+  }
+  tick(); setInterval(tick,1000);
+
+  // ---- Voz ----
+  let voz=null;
+  function elegirVoz(){ const v=speechSynthesis.getVoices(); voz=v.find(x=>/^es/i.test(x.lang))||v[0]||null; }
+  if("speechSynthesis" in window){ elegirVoz(); speechSynthesis.onvoiceschanged=elegirVoz; }
+  function chime(){
+    try{const ac=window._ac||(window._ac=new (window.AudioContext||window.webkitAudioContext)());
+      [880,1175].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type="sine";o.connect(g);g.connect(ac.destination);const t=ac.currentTime+i*.18;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+.4);o.start(t);o.stop(t+.42);});
+    }catch(e){}
+  }
+  function hablar(caja){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(frase(caja)); if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95; speechSynthesis.speak(u); }
+
+  function pintarRecientes(){
+    if(!recientes.length){ recList.innerHTML='<div class="rec-empty">Aún no hay llamados</div>'; return; }
+    recList.innerHTML=recientes.map(r=>
+      '<div class="rec-row"><div class="rec-code">Caja '+r.caja+'</div><div class="rec-area">'+r.hora+'</div></div>'
+    ).join("");
   }
 
-  return (
-    <s-tile
-      heading={enviando ? "Llamando…" : "Llamar siguiente"}
-      subheading={caja ? `Caja ${caja}` : "Configura el nombre del dispositivo"}
-      tone="accent"
-      disabled={enviando}
-      onClick={llamar}
-    />
-  );
-}
+  function anunciar(caja){
+    turnoEl.classList.remove("turno-idle");
+    turnoEl.innerHTML='<small>CAJA</small>'+caja;
+    chime(); setTimeout(()=>hablar(caja),350);
+    let hora="";
+    try{ const now=new Date(); let h=Number(new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",hour:"numeric",hour12:false}).format(now)); const m=new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",minute:"2-digit"}).format(now).padStart(2,"0"); const ap=h<12?"a.m.":"p.m."; let hh=h%12; if(hh===0)hh=12; hora=hh+":"+m+" "+ap; }catch(e){}
+    recientes.unshift({caja:caja,hora:hora});
+    if(recientes.length>5) recientes.pop();
+    pintarRecientes();
+  }
+
+  // ---- SSE ----
+  function conectar(){ let es; try{es=new EventSource("/events");}catch(e){setTimeout(conectar,2000);return;}
+    es.onopen=()=>dot.classList.add("on");
+    es.onerror=()=>dot.classList.remove("on");
+    es.onmessage=(ev)=>{ try{const m=JSON.parse(ev.data); if(m.tipo==="llamar") anunciar(m.caja);}catch(e){} };
+  }
+  conectar();
+  setInterval(()=>{ fetch("/health").catch(()=>{}); },240000);
+
+  document.getElementById("startBtn").addEventListener("click",()=>{
+    try{new (window.AudioContext||window.webkitAudioContext)().resume();}catch(e){}
+    if("speechSynthesis" in window){const w=new SpeechSynthesisUtterance(" ");speechSynthesis.speak(w);}
+    document.getElementById("start").style.display="none";
+    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
+  });
+})();
+</script>
+</body>
+</html>
