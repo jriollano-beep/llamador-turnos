@@ -1,0 +1,70 @@
+import { render } from "preact";
+import { useState } from "preact/hooks";
+
+/**
+ * BOTÓN "LLAMAR SIGUIENTE" dentro de Shopify POS
+ * ------------------------------------------------
+ * El cajero toca este botón en la pantalla de inicio de POS (smart grid) y se
+ * anuncia su caja en el monitor de la fila, SIN salir de la app.
+ *
+ * Cada iPad se identifica solo por el NOMBRE DE DISPOSITIVO de POS:
+ *   Ajustes de POS -> Dispositivo -> ponle de nombre  "Caja 1", "Caja 2", ...
+ * El código toma el número de ese nombre. Así la MISMA extensión sirve para las
+ * 6 cajas sin configurar nada por iPad.
+ */
+
+// 👉 CAMBIA esto por la dirección pública (HTTPS) de tu servidor de turnos.
+//    Ej: "https://turnos.mitienda.com"  (ver README-OPCION-C.md, paso "Hospedar").
+const SERVIDOR = "https://TU-SERVIDOR.com";
+
+// Obtiene el número de caja a partir del nombre del dispositivo POS ("Caja 3" -> "3")
+function numeroDeCaja(): string {
+  const nombre = (shopify?.device?.name || "").toString();
+  const m = nombre.match(/\d+/);
+  return m ? m[0] : "";
+}
+
+export default async () => {
+  render(<TileLlamador />, document.body);
+};
+
+function TileLlamador() {
+  const [enviando, setEnviando] = useState(false);
+  const caja = numeroDeCaja();
+
+  async function llamar() {
+    if (enviando) return;
+    if (!caja) {
+      shopify.toast.show(
+        "Ponle nombre a este dispositivo en Ajustes de POS: 'Caja 1', 'Caja 2'…",
+        { duration: 5000 }
+      );
+      return;
+    }
+    setEnviando(true);
+    try {
+      const r = await fetch(`${SERVIDOR}/call?caja=${encodeURIComponent(caja)}`, {
+        method: "GET",
+      });
+      if (r.ok) {
+        shopify.toast.show(`Llamado: Caja ${caja} ✓`);
+      } else {
+        shopify.toast.show(`No se pudo anunciar (error ${r.status})`);
+      }
+    } catch (e) {
+      shopify.toast.show("Sin conexión con la pantalla de turnos");
+    } finally {
+      setTimeout(() => setEnviando(false), 1200);
+    }
+  }
+
+  return (
+    <s-tile
+      heading={enviando ? "Llamando…" : "Llamar siguiente"}
+      subheading={caja ? `Caja ${caja}` : "Configura el nombre del dispositivo"}
+      tone="accent"
+      disabled={enviando}
+      onClick={llamar}
+    />
+  );
+}

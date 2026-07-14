@@ -1,0 +1,17 @@
+# Configuración de la extensión de POS.
+# NOTA: cuando generes la extensión con la CLI de Shopify (ver README-OPCION-C.md),
+# ella ya crea este archivo con el api_version MÁS RECIENTE. Deja el api_version
+# que ponga la CLI y solo asegúrate de que el bloque [[extensions.targeting]]
+# apunte al Tile, como aquí abajo.
+
+api_version = "2025-07"
+
+[[extensions]]
+type = "ui_extension"
+name = "Llamador de turnos"
+handle = "llamador-turnos"
+description = "Botón para llamar al próximo cliente y anunciarlo en el monitor de la fila."
+
+[[extensions.targeting]]
+target = "pos.home.tile.render"
+module = "./src/Tile.tsx"
