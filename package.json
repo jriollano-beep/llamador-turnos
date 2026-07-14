@@ -1,0 +1,7 @@
+{
+  "name": "llamador-turnos",
+  "version": "1.0.0",
+  "description": "Llamador de turnos por caja para tienda con Shopify POS. Sin dependencias.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" }
+}
