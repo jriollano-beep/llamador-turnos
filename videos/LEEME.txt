@@ -1,0 +1,8 @@
+Carpeta de VIDEOS de la pantalla de turnos.
+
+- Para AGREGAR un video: copia aquí un archivo .mp4 (vertical, 1080x1920 ideal).
+- Para QUITAR un video: borra el archivo.
+- Se reproducen en orden por nombre. Para ordenarlos, ponles nombre 1-, 2-, 3-...
+  Ej: 1-promo.mp4, 2-oferta.mp4
+
+La pantalla los detecta solos (no hay que tocar código).
