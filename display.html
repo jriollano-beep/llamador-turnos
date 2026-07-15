@@ -39,6 +39,14 @@
   .turno-num.anim{ animation: turnoIn .55s cubic-bezier(.2,.8,.2,1), turnoGlow 2s ease-in-out .55s infinite; }
   @keyframes turnoIn{ 0%{transform:scale(1.32); opacity:0;} 55%{transform:scale(.97); opacity:1;} 100%{transform:scale(1);} }
   @keyframes turnoGlow{ 0%,100%{text-shadow:0 0 20px rgba(31,162,78,.35), 0 8px 40px rgba(31,162,78,.22);} 50%{text-shadow:0 0 42px rgba(31,162,78,.65), 0 8px 55px rgba(31,162,78,.42);} }
+  .turno-fila{display:flex; align-items:center; justify-content:center; gap:6px; width:100%;}
+  .flecha{color:var(--green); display:none; flex:0 0 auto;}
+  .flecha svg{width:min(15vw,160px); height:min(15vw,160px); display:block; filter:drop-shadow(0 0 16px rgba(31,162,78,.45));}
+  .flecha.show{display:block;}
+  .flecha.izq.show{animation:pulseIzq 1s ease-in-out infinite;}
+  .flecha.der.show{animation:pulseDer 1s ease-in-out infinite;}
+  @keyframes pulseIzq{0%,100%{transform:translateX(10px); opacity:.45;} 50%{transform:translateX(-10px); opacity:1;}}
+  @keyframes pulseDer{0%,100%{transform:translateX(-10px); opacity:.45;} 50%{transform:translateX(10px); opacity:1;}}
   .turno-idle{color:var(--muted); opacity:.5;}
   .turno-msg{font-weight:900; color:#37474f; font-size:clamp(2.9rem,7.6vw,6rem); text-align:center; line-height:1.15; padding:0 10px; width:100%;}
   .espere-img{max-width:90%; max-height:100%; min-height:0; object-fit:contain; display:block;}
@@ -122,7 +130,11 @@
 
         <div class="turno-box">
           <div class="section-title" id="turnoLabel" style="display:none">Turno actual</div>
-          <div class="turno-num" id="turno" style="display:none"><small>CAJA</small>—</div>
+          <div class="turno-fila" id="turnoFila" style="display:none">
+            <span class="flecha izq" id="flechaIzq"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M28 10 L14 24 L28 38"/><path d="M40 10 L26 24 L40 38"/></svg></span>
+            <div class="turno-num" id="turno"><small>CAJA</small>—</div>
+            <span class="flecha der" id="flechaDer"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10 L34 24 L20 38"/><path d="M8 10 L22 24 L8 38"/></svg></span>
+          </div>
           <img class="espere-img" id="turnoMsg" src="/espere.png" alt="Espere a ser llamado" />
         </div>
 
@@ -175,9 +187,13 @@
 <script>
 (function(){
   const turnoEl=document.getElementById("turno");
+  const turnoFila=document.getElementById("turnoFila");
+  const flechaIzq=document.getElementById("flechaIzq");
+  const flechaDer=document.getElementById("flechaDer");
   const turnoLabel=document.getElementById("turnoLabel");
   const turnoMsg=document.getElementById("turnoMsg");
   const banner=document.getElementById("banner");
+  const CAJAS_IZQUIERDA = ["1","2"];   // estas cajas muestran flecha a la izquierda
   const dot=document.getElementById("dot");
   const fDate=document.getElementById("fDate");
   const fTime=document.getElementById("fTime");
@@ -187,7 +203,9 @@
   // Estado en espera: muestra "Espere a ser llamado", oculta el número
   function idle(){
     turnoMsg.style.display="";
-    turnoEl.style.display="none";
+    turnoFila.style.display="none";
+    flechaIzq.classList.remove("show");
+    flechaDer.classList.remove("show");
     turnoLabel.style.display="none";
     banner.style.display="none";
   }
@@ -242,9 +260,13 @@
     const mySeq=++seq;
     turnoMsg.style.display="none";
     turnoLabel.style.display="";
-    turnoEl.style.display="";
+    turnoFila.style.display="flex";
     turnoEl.innerHTML='<small>CAJA</small>'+caja;
     turnoEl.classList.remove("anim"); void turnoEl.offsetWidth; turnoEl.classList.add("anim");  // glow + zoom
+    // Flecha: cajas 1 y 2 hacia la izquierda, las demás hacia la derecha
+    const izq = CAJAS_IZQUIERDA.indexOf(String(caja)) !== -1;
+    flechaIzq.classList.toggle("show", izq);
+    flechaDer.classList.toggle("show", !izq);
     banner.style.display="";
     duck();                                  // baja el volumen del video
     chime(); setTimeout(()=>hablar(caja, mySeq), 350);
