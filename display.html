@@ -37,6 +37,7 @@
   .turno-num{font-weight:900; color:var(--green); line-height:.78; font-size:min(34vw,360px); text-align:center; text-shadow:0 8px 34px rgba(31,162,78,.20); white-space:nowrap;}
   .turno-num small{font-size:.26em; color:var(--ink); font-weight:800; letter-spacing:5px; display:block; opacity:.72; line-height:1; margin-bottom:.06em;}
   .turno-idle{color:var(--muted); opacity:.5;}
+  .turno-msg{font-weight:800; color:var(--muted); font-size:clamp(2.6rem,7vw,5.4rem); text-align:center; line-height:1.2; opacity:.85; padding:0 10px;}
 
   .banner{display:flex; align-items:center; justify-content:center; gap:16px; background:var(--green); color:#fff; font-weight:800; font-size:34px; padding:26px 28px; border-radius:18px; width:100%; margin-top:6px;}
   .banner svg{width:42px; height:42px; fill:#fff; flex:0 0 auto;}
@@ -48,11 +49,11 @@
   .area .lbl{font-size:12px; font-weight:700; color:var(--ink); text-align:center; letter-spacing:.5px; line-height:1.2;}
 
   /* ---------- DERECHA ---------- */
-  .right{display:flex; flex-direction:column; gap:20px;}
-  .video-wrap{flex:1; display:flex; align-items:center; justify-content:center; min-height:0;}
-  .video-card{height:100%; aspect-ratio:9/16; max-width:100%; overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; background:#0b1220; padding:0;}
-  .video-card video{width:100%; height:100%; object-fit:cover; display:block;}
-  .video-ph{position:absolute; color:#9fb3c8; font-size:22px; font-weight:700; letter-spacing:1px; text-align:center; line-height:1.4;}
+  .right{display:flex; flex-direction:column; gap:20px; min-height:0; min-width:0; overflow:hidden;}
+  .video-wrap{flex:1; display:flex; align-items:center; justify-content:center; min-height:0; overflow:hidden;}
+  .video-card{position:relative; height:100%; max-height:100%; aspect-ratio:9/16; max-width:100%; overflow:hidden; background:#0b1220; padding:0;}
+  .video-card video{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;}
+  .video-ph{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#9fb3c8; font-size:22px; font-weight:700; letter-spacing:1px; text-align:center; line-height:1.4;}
   .recientes{flex:1; padding:18px 22px; display:flex; flex-direction:column; min-height:0;}
   .rec-title{color:var(--green); text-align:right; letter-spacing:3px;}
   .rec-title{display:flex; align-items:center; justify-content:flex-end; gap:14px; font-weight:800; font-size:20px; text-transform:uppercase; margin-bottom:6px;}
@@ -118,11 +119,12 @@
         </div>
 
         <div class="turno-box">
-          <div class="section-title">Turno actual</div>
-          <div class="turno-num turno-idle" id="turno"><small>&nbsp;</small>—</div>
+          <div class="section-title" id="turnoLabel" style="display:none">Turno actual</div>
+          <div class="turno-num" id="turno" style="display:none"><small>CAJA</small>—</div>
+          <div class="turno-msg" id="turnoMsg">Espere a ser llamado</div>
         </div>
 
-        <div class="banner">
+        <div class="banner" id="banner" style="display:none">
           <svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a3.5 3.5 0 00-2-3.15v6.3a3.5 3.5 0 002-3.15z"/></svg>
           <span id="bannerTxt">Por favor, pase a la caja indicada.</span>
         </div>
@@ -166,13 +168,23 @@
 <script>
 (function(){
   const turnoEl=document.getElementById("turno");
-  const bannerTxt=document.getElementById("bannerTxt");
-  const recList=document.getElementById("recList");
+  const turnoLabel=document.getElementById("turnoLabel");
+  const turnoMsg=document.getElementById("turnoMsg");
+  const banner=document.getElementById("banner");
   const dot=document.getElementById("dot");
   const fDate=document.getElementById("fDate");
   const fTime=document.getElementById("fTime");
   const promo=document.getElementById("promo");
-  const recientes=[];
+  let seq=0;
+
+  // Estado en espera: muestra "Espere a ser llamado", oculta el número
+  function idle(){
+    turnoMsg.style.display="";
+    turnoEl.style.display="none";
+    turnoLabel.style.display="none";
+    banner.style.display="none";
+  }
+  idle();
 
   // Baja/sube el volumen del video cuando hay anuncio (ducking)
   let unduckTimer=null;
@@ -203,34 +215,31 @@
       [880,1175].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type="sine";o.connect(g);g.connect(ac.destination);const t=ac.currentTime+i*.18;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+.4);o.start(t);o.stop(t+.42);});
     }catch(e){}
   }
-  function hablar(caja){
-    if(!("speechSynthesis" in window)){ unduck(); return; }
+  function hablar(caja, mySeq){
+    function terminar(){
+      clearTimeout(unduckTimer);
+      if(mySeq!==seq) return;              // llegó un llamado más nuevo: no tocar
+      unduck();                            // vuelve el volumen del video
+      setTimeout(()=>{ if(mySeq===seq) idle(); }, 1500);  // vuelve al mensaje de espera
+    }
+    if(!("speechSynthesis" in window)){ setTimeout(terminar, 2500); return; }
     speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(frase(caja)); if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95; speechSynthesis.speak(u);
     const u2=new SpeechSynthesisUtterance("Caja " + caja); if(voz)u2.voice=voz; u2.lang=u.lang; u2.rate=.95;
-    u2.onend=()=>{ clearTimeout(unduckTimer); unduck(); };
+    u2.onend=terminar;
     speechSynthesis.speak(u2);
-    clearTimeout(unduckTimer); unduckTimer=setTimeout(unduck, 9000);  // seguridad
-  }
-
-  function pintarRecientes(){
-    if(!recList) return;
-    if(!recientes.length){ recList.innerHTML='<div class="rec-empty">Aún no hay llamados</div>'; return; }
-    recList.innerHTML=recientes.map(r=>
-      '<div class="rec-row"><div class="rec-code">Caja '+r.caja+'</div><div class="rec-area">'+r.hora+'</div></div>'
-    ).join("");
+    clearTimeout(unduckTimer); unduckTimer=setTimeout(terminar, 9000);  // seguridad
   }
 
   function anunciar(caja){
-    turnoEl.classList.remove("turno-idle");
+    const mySeq=++seq;
+    turnoMsg.style.display="none";
+    turnoLabel.style.display="";
+    turnoEl.style.display="";
     turnoEl.innerHTML='<small>CAJA</small>'+caja;
+    banner.style.display="";
     duck();                                  // baja el volumen del video
-    chime(); setTimeout(()=>hablar(caja),350);
-    let hora="";
-    try{ const now=new Date(); let h=Number(new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",hour:"numeric",hour12:false}).format(now)); const m=new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",minute:"2-digit"}).format(now).padStart(2,"0"); const ap=h<12?"a.m.":"p.m."; let hh=h%12; if(hh===0)hh=12; hora=hh+":"+m+" "+ap; }catch(e){}
-    recientes.unshift({caja:caja,hora:hora});
-    if(recientes.length>5) recientes.pop();
-    pintarRecientes();
+    chime(); setTimeout(()=>hablar(caja, mySeq), 350);
   }
 
   // ---- Video promocional: rota TODOS los videos de la carpeta /videos ----
