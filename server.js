@@ -5,12 +5,14 @@ const path = require("path");
 const PORT = process.env.PORT || 3000;
 const clientes = new Set();
 const cajas = {}; // ID de dispositivo -> numero de caja
+const VIDEOS_DIR = path.join(__dirname, "videos");
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
   ".gif": "image/gif", ".svg": "image/svg+xml", ".ico": "image/x-icon",
   ".css": "text/css", ".js": "text/javascript",
+  ".mp4": "video/mp4", ".webm": "video/webm",
 };
 
 function json(res, code, obj) {
@@ -21,14 +23,30 @@ function broadcast(msg) {
   const d = "data: " + JSON.stringify(msg) + "\n\n";
   for (const r of clientes) { try { r.write(d); } catch (e) { clientes.delete(r); } }
 }
-function servirArchivo(res, file) {
+
+// Sirve un archivo con soporte de "Range" (necesario para video)
+function serveFile(req, res, fp) {
+  const stat = fs.statSync(fp);
+  const type = MIME[path.extname(fp).toLowerCase()] || "application/octet-stream";
+  const range = req.headers.range;
+  if (range) {
+    const m = /bytes=(\d*)-(\d*)/.exec(range) || [];
+    let start = m[1] ? parseInt(m[1], 10) : 0;
+    let end = m[2] ? parseInt(m[2], 10) : stat.size - 1;
+    if (isNaN(start) || isNaN(end) || start > end || start >= stat.size) {
+      res.writeHead(416, { "Content-Range": "bytes */" + stat.size }); return res.end();
+    }
+    res.writeHead(206, { "Content-Type": type, "Content-Range": "bytes " + start + "-" + end + "/" + stat.size, "Accept-Ranges": "bytes", "Content-Length": end - start + 1 });
+    return fs.createReadStream(fp, { start, end }).pipe(res);
+  }
+  res.writeHead(200, { "Content-Type": type, "Content-Length": stat.size, "Accept-Ranges": "bytes" });
+  return fs.createReadStream(fp).pipe(res);
+}
+function servirEnRaiz(req, res, file) {
   const base = path.basename(file);
   for (const dir of [path.join(__dirname, "public"), __dirname]) {
     const fp = path.join(dir, base);
-    if (base && fs.existsSync(fp) && fs.statSync(fp).isFile()) {
-      res.writeHead(200, { "Content-Type": MIME[path.extname(fp).toLowerCase()] || "application/octet-stream" });
-      return fs.createReadStream(fp).pipe(res);
-    }
+    if (base && fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(req, res, fp);
   }
   res.writeHead(404); res.end("No encontrado");
 }
@@ -63,9 +81,31 @@ const server = http.createServer((req, res) => {
     return json(res, 200, { ok: true, caja, pantallas: clientes.size });
   }
 
-  if (p === "/" || p === "/display") return servirArchivo(res, "display.html");
-  if (p === "/caja") return servirArchivo(res, "caja.html");
-  return servirArchivo(res, p);
+  // Lista automatica de todos los videos de la carpeta /videos
+  if (p === "/videos.json") {
+    let lista = [];
+    try {
+      if (fs.existsSync(VIDEOS_DIR)) {
+        lista = fs.readdirSync(VIDEOS_DIR)
+          .filter(f => /\.(mp4|webm)$/i.test(f))
+          .sort()
+          .map(f => "/videos/" + encodeURIComponent(f));
+      }
+    } catch (e) {}
+    res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" });
+    return res.end(JSON.stringify(lista));
+  }
+
+  // Servir cada archivo de video
+  if (p.startsWith("/videos/")) {
+    const fp = path.join(VIDEOS_DIR, path.basename(decodeURIComponent(p)));
+    if (fp.startsWith(VIDEOS_DIR) && fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(req, res, fp);
+    res.writeHead(404); return res.end("No encontrado");
+  }
+
+  if (p === "/" || p === "/display") return servirEnRaiz(req, res, "display.html");
+  if (p === "/caja") return servirEnRaiz(req, res, "caja.html");
+  return servirEnRaiz(req, res, p);
 });
 
 server.listen(PORT, () => console.log("Llamador de turnos ACTIVO en el puerto " + PORT));

@@ -22,14 +22,14 @@
 
   /* ---------- IZQUIERDA ---------- */
   .left{display:flex; flex-direction:column; gap:18px;}
-  .logo-img{width:min(100%,420px); height:auto; display:block;}
-  .logo-wrap{display:flex; flex-direction:column; align-items:center; gap:6px; padding-top:6px;}
+  .logo-img{width:min(100%,560px); height:auto; display:block;}
+  .logo-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; padding-top:6px;}
   .logo{display:flex; align-items:center; gap:12px;}
   .logo .ja{background:var(--green); color:#fff; font-weight:900; font-size:34px; padding:6px 12px; border-radius:8px; letter-spacing:-1px; line-height:1;}
   .logo .name{font-weight:900; font-size:48px; color:var(--green); letter-spacing:1px; position:relative;}
   .logo .name .pencil{position:absolute; right:-6px; top:-14px; font-size:22px; transform:rotate(35deg);}
   .logo .tm{font-size:13px; vertical-align:super; color:var(--green);}
-  .tagline{font-weight:800; letter-spacing:4px; font-size:14px; color:var(--ink); opacity:.75;}
+  .tagline{font-weight:800; letter-spacing:6px; font-size:22px; color:var(--ink); opacity:.8;}
 
   .turno-box{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:10px; width:100%; text-align:center;}
   .section-title{display:flex; align-items:center; gap:18px; color:var(--ink); font-weight:800; letter-spacing:4px; font-size:30px; text-transform:uppercase;}
@@ -38,8 +38,8 @@
   .turno-num small{font-size:.26em; color:var(--ink); font-weight:800; letter-spacing:5px; display:block; opacity:.72; line-height:1; margin-bottom:.06em;}
   .turno-idle{color:var(--muted); opacity:.5;}
 
-  .banner{display:flex; align-items:center; justify-content:center; gap:12px; background:var(--green-l); color:var(--green-d); font-weight:700; font-size:20px; padding:16px 22px; border-radius:16px; width:100%;}
-  .banner svg{width:26px; height:26px; fill:var(--green);}
+  .banner{display:flex; align-items:center; justify-content:center; gap:16px; background:var(--green); color:#fff; font-weight:800; font-size:34px; padding:26px 28px; border-radius:18px; width:100%; margin-top:6px;}
+  .banner svg{width:42px; height:42px; fill:#fff; flex:0 0 auto;}
 
   .areas{display:flex; justify-content:space-around; gap:8px; padding:6px 4px 2px;}
   .area{display:flex; flex-direction:column; align-items:center; gap:8px; width:20%;}
@@ -49,7 +49,11 @@
 
   /* ---------- DERECHA ---------- */
   .right{display:flex; flex-direction:column; gap:20px;}
-  .recientes{flex:1.3; padding:20px 22px; display:flex; flex-direction:column;}
+  .video-wrap{flex:1; display:flex; align-items:center; justify-content:center; min-height:0;}
+  .video-card{height:100%; aspect-ratio:9/16; max-width:100%; overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center; background:#0b1220; padding:0;}
+  .video-card video{width:100%; height:100%; object-fit:cover; display:block;}
+  .video-ph{position:absolute; color:#9fb3c8; font-size:22px; font-weight:700; letter-spacing:1px; text-align:center; line-height:1.4;}
+  .recientes{flex:1; padding:18px 22px; display:flex; flex-direction:column; min-height:0;}
   .rec-title{color:var(--green); text-align:right; letter-spacing:3px;}
   .rec-title{display:flex; align-items:center; justify-content:flex-end; gap:14px; font-weight:800; font-size:20px; text-transform:uppercase; margin-bottom:6px;}
   .rec-title::before{content:""; height:3px; width:40px; background:var(--green); border-radius:3px;}
@@ -60,6 +64,14 @@
   .rec-area{font-size:18px; font-weight:600; color:var(--muted); letter-spacing:.5px;}
   .rec-empty{flex:1; display:flex; align-items:center; justify-content:center; color:var(--muted); opacity:.5; font-size:18px;}
 
+  .pagos{padding:20px 22px; flex:0 0 auto;}
+  .pagos-title{display:flex; align-items:center; justify-content:center; gap:14px; color:var(--green); font-weight:800; font-size:24px; text-transform:uppercase; letter-spacing:2px; margin-bottom:16px;}
+  .pagos-title::before,.pagos-title::after{content:""; height:3px; width:34px; background:var(--green); border-radius:3px;}
+  .pagos-row{display:flex; justify-content:space-around; gap:12px;}
+  .pago{display:flex; flex-direction:column; align-items:center; gap:10px;}
+  .pago .pico{width:76px; height:76px; border:2px solid var(--green); border-radius:16px; display:flex; align-items:center; justify-content:center;}
+  .pago .pico svg{width:40px; height:40px; stroke:var(--green); fill:none; stroke-width:2;}
+  .pago span{font-weight:800; color:var(--ink); font-size:19px;}
   .horario{padding:20px 22px; background:var(--green-l); border-radius:22px;}
   .horario h3{display:flex; align-items:center; gap:10px; color:var(--green-d); letter-spacing:2px; font-size:17px; text-transform:uppercase; margin-bottom:12px;}
   .horario h3 svg{width:22px; height:22px; stroke:var(--green-d); fill:none; stroke-width:2;}
@@ -108,27 +120,30 @@
         <div class="turno-box">
           <div class="section-title">Turno actual</div>
           <div class="turno-num turno-idle" id="turno"><small>&nbsp;</small>—</div>
-          <div class="banner">
-            <svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a3.5 3.5 0 00-2-3.15v6.3a3.5 3.5 0 002-3.15z"/></svg>
-            <span id="bannerTxt">Por favor, pase a la caja indicada.</span>
-          </div>
+        </div>
+
+        <div class="banner">
+          <svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a3.5 3.5 0 00-2-3.15v6.3a3.5 3.5 0 002-3.15z"/></svg>
+          <span id="bannerTxt">Por favor, pase a la caja indicada.</span>
         </div>
       </div>
 
       <!-- DERECHA -->
       <div class="right">
-        <div class="recientes card">
-          <div class="rec-title">Turnos recientes</div>
-          <div class="rec-list" id="recList">
-            <div class="rec-empty">Aún no hay llamados</div>
+        <div class="video-wrap">
+          <div class="video-card card">
+            <video id="promo" muted playsinline></video>
+            <div class="video-ph" id="videoPh">▶ Video<br>promocional</div>
           </div>
         </div>
 
-        <div class="horario">
-          <h3><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Horario de servicio</h3>
-          <div class="item"><div class="k">Lunes a Sábado</div><div class="v">8:00 a.m. – 4:30 p.m.</div></div>
-          <hr>
-          <div class="item"><div class="k">Copias e Impresiones</div><div class="v">8:00 a.m. – 4:00 p.m. &nbsp;|&nbsp; Cerrado 11:00 a.m. – 12:00 p.m.</div></div>
+        <div class="pagos card">
+          <div class="pagos-title">Métodos de pago</div>
+          <div class="pagos-row">
+            <div class="pago"><div class="pico"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div><span>Efectivo</span></div>
+            <div class="pago"><div class="pico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 9h20"/></svg></div><span>Tarjeta</span></div>
+            <div class="pago"><div class="pico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v0M17 20h4M20 17v4"/></svg></div><span>QR</span></div>
+          </div>
         </div>
       </div>
     </div>
@@ -156,7 +171,13 @@
   const dot=document.getElementById("dot");
   const fDate=document.getElementById("fDate");
   const fTime=document.getElementById("fTime");
+  const promo=document.getElementById("promo");
   const recientes=[];
+
+  // Baja/sube el volumen del video cuando hay anuncio (ducking)
+  let unduckTimer=null;
+  function duck(){ try{ promo.volume=0.10; }catch(e){} }
+  function unduck(){ try{ promo.volume=1; }catch(e){} }
 
   function frase(caja){ return "Próximo cliente, pase a la caja " + caja; }
 
@@ -182,11 +203,18 @@
       [880,1175].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type="sine";o.connect(g);g.connect(ac.destination);const t=ac.currentTime+i*.18;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+.4);o.start(t);o.stop(t+.42);});
     }catch(e){}
   }
-  function hablar(caja){ if(!("speechSynthesis" in window))return; speechSynthesis.cancel();
+  function hablar(caja){
+    if(!("speechSynthesis" in window)){ unduck(); return; }
+    speechSynthesis.cancel();
     const u=new SpeechSynthesisUtterance(frase(caja)); if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95; speechSynthesis.speak(u);
-    const u2=new SpeechSynthesisUtterance("Caja " + caja); if(voz)u2.voice=voz; u2.lang=u.lang; u2.rate=.95; speechSynthesis.speak(u2); }
+    const u2=new SpeechSynthesisUtterance("Caja " + caja); if(voz)u2.voice=voz; u2.lang=u.lang; u2.rate=.95;
+    u2.onend=()=>{ clearTimeout(unduckTimer); unduck(); };
+    speechSynthesis.speak(u2);
+    clearTimeout(unduckTimer); unduckTimer=setTimeout(unduck, 9000);  // seguridad
+  }
 
   function pintarRecientes(){
+    if(!recList) return;
     if(!recientes.length){ recList.innerHTML='<div class="rec-empty">Aún no hay llamados</div>'; return; }
     recList.innerHTML=recientes.map(r=>
       '<div class="rec-row"><div class="rec-code">Caja '+r.caja+'</div><div class="rec-area">'+r.hora+'</div></div>'
@@ -196,6 +224,7 @@
   function anunciar(caja){
     turnoEl.classList.remove("turno-idle");
     turnoEl.innerHTML='<small>CAJA</small>'+caja;
+    duck();                                  // baja el volumen del video
     chime(); setTimeout(()=>hablar(caja),350);
     let hora="";
     try{ const now=new Date(); let h=Number(new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",hour:"numeric",hour12:false}).format(now)); const m=new Intl.DateTimeFormat("en-US",{timeZone:"America/La_Paz",minute:"2-digit"}).format(now).padStart(2,"0"); const ap=h<12?"a.m.":"p.m."; let hh=h%12; if(hh===0)hh=12; hora=hh+":"+m+" "+ap; }catch(e){}
@@ -203,6 +232,26 @@
     if(recientes.length>5) recientes.pop();
     pintarRecientes();
   }
+
+  // ---- Video promocional: rota TODOS los videos de la carpeta /videos ----
+  // Para agregar/quitar: solo subes o borras archivos MP4 en esa carpeta.
+  (function(){
+    const ph=document.getElementById("videoPh");
+    let lista=[], idx=-1;
+    async function cargar(){ try{ const r=await fetch("/videos.json",{cache:"no-store"}); const l=await r.json(); if(Array.isArray(l)) lista=l; }catch(e){} }
+    function siguiente(){
+      if(!lista.length){ ph.style.display=""; promo.removeAttribute("src"); return; }
+      ph.style.display="none";
+      idx=(idx+1)%lista.length;
+      promo.src=lista[idx];
+      promo.play().catch(()=>{});
+    }
+    promo.addEventListener("ended", async ()=>{ await cargar(); siguiente(); });
+    promo.addEventListener("error", ()=>{ setTimeout(siguiente,900); });
+    (async()=>{ await cargar(); siguiente(); })();
+    // Si no hay video sonando (p.ej. acabas de subir el primero), reintenta solo
+    setInterval(async ()=>{ if(!promo.currentSrc){ await cargar(); siguiente(); } }, 30000);
+  })();
 
   // ---- SSE ----
   function conectar(){ let es; try{es=new EventSource("/events");}catch(e){setTimeout(conectar,2000);return;}
@@ -216,6 +265,7 @@
   document.getElementById("startBtn").addEventListener("click",()=>{
     try{new (window.AudioContext||window.webkitAudioContext)().resume();}catch(e){}
     if("speechSynthesis" in window){const w=new SpeechSynthesisUtterance(" ");speechSynthesis.speak(w);}
+    try{ promo.muted=false; promo.volume=1; promo.play(); }catch(e){}   // activa el audio del video
     document.getElementById("start").style.display="none";
     if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
   });
