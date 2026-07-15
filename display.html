@@ -34,10 +34,13 @@
   .turno-box{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:10px; width:100%; text-align:center;}
   .section-title{display:flex; align-items:center; gap:18px; color:var(--ink); font-weight:800; letter-spacing:4px; font-size:30px; text-transform:uppercase;}
   .section-title::before,.section-title::after{content:""; height:4px; width:66px; background:var(--green); border-radius:3px;}
-  .turno-num{font-weight:900; color:var(--green); line-height:.78; font-size:min(34vw,360px); text-align:center; text-shadow:0 8px 34px rgba(31,162,78,.20); white-space:nowrap;}
+  .turno-num{font-weight:900; color:var(--green); line-height:.78; font-size:min(34vw,360px); text-align:center; text-shadow:0 0 22px rgba(31,162,78,.35), 0 8px 40px rgba(31,162,78,.25); white-space:nowrap;}
   .turno-num small{font-size:.26em; color:var(--ink); font-weight:800; letter-spacing:5px; display:block; opacity:.72; line-height:1; margin-bottom:.06em;}
+  .turno-num.anim{ animation: turnoIn .55s cubic-bezier(.2,.8,.2,1), turnoGlow 2s ease-in-out .55s infinite; }
+  @keyframes turnoIn{ 0%{transform:scale(1.32); opacity:0;} 55%{transform:scale(.97); opacity:1;} 100%{transform:scale(1);} }
+  @keyframes turnoGlow{ 0%,100%{text-shadow:0 0 20px rgba(31,162,78,.35), 0 8px 40px rgba(31,162,78,.22);} 50%{text-shadow:0 0 42px rgba(31,162,78,.65), 0 8px 55px rgba(31,162,78,.42);} }
   .turno-idle{color:var(--muted); opacity:.5;}
-  .turno-msg{font-weight:800; color:var(--muted); font-size:clamp(2.6rem,7vw,5.4rem); text-align:center; line-height:1.2; opacity:.85; padding:0 10px;}
+  .turno-msg{font-weight:900; color:#37474f; font-size:clamp(2.9rem,7.6vw,6rem); text-align:center; line-height:1.15; padding:0 10px; width:100%;}
 
   .banner{display:flex; align-items:center; justify-content:center; gap:16px; background:var(--green); color:#fff; font-weight:800; font-size:34px; padding:26px 28px; border-radius:18px; width:100%; margin-top:6px;}
   .banner svg{width:42px; height:42px; fill:#fff; flex:0 0 auto;}
@@ -237,6 +240,7 @@
     turnoLabel.style.display="";
     turnoEl.style.display="";
     turnoEl.innerHTML='<small>CAJA</small>'+caja;
+    turnoEl.classList.remove("anim"); void turnoEl.offsetWidth; turnoEl.classList.add("anim");  // glow + zoom
     banner.style.display="";
     duck();                                  // baja el volumen del video
     chime(); setTimeout(()=>hablar(caja, mySeq), 350);
