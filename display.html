@@ -41,6 +41,7 @@
   @keyframes turnoGlow{ 0%,100%{text-shadow:0 0 20px rgba(31,162,78,.35), 0 8px 40px rgba(31,162,78,.22);} 50%{text-shadow:0 0 42px rgba(31,162,78,.65), 0 8px 55px rgba(31,162,78,.42);} }
   .turno-idle{color:var(--muted); opacity:.5;}
   .turno-msg{font-weight:900; color:#37474f; font-size:clamp(2.9rem,7.6vw,6rem); text-align:center; line-height:1.15; padding:0 10px; width:100%;}
+  .espere-img{max-width:98%; max-height:66vh; object-fit:contain; display:block;}
 
   .banner{display:flex; align-items:center; justify-content:center; gap:16px; background:var(--green); color:#fff; font-weight:800; font-size:34px; padding:26px 28px; border-radius:18px; width:100%; margin-top:6px;}
   .banner svg{width:42px; height:42px; fill:#fff; flex:0 0 auto;}
@@ -71,11 +72,9 @@
   .pagos{padding:20px 22px; flex:0 0 auto;}
   .pagos-title{display:flex; align-items:center; justify-content:center; gap:14px; color:var(--green); font-weight:800; font-size:24px; text-transform:uppercase; letter-spacing:2px; margin-bottom:16px;}
   .pagos-title::before,.pagos-title::after{content:""; height:3px; width:34px; background:var(--green); border-radius:3px;}
-  .pagos-row{display:flex; justify-content:space-around; gap:12px;}
-  .pago{display:flex; flex-direction:column; align-items:center; gap:10px;}
-  .pago .pico{width:76px; height:76px; border:2px solid var(--green); border-radius:16px; display:flex; align-items:center; justify-content:center;}
-  .pago .pico svg{width:40px; height:40px; stroke:var(--green); fill:none; stroke-width:2;}
-  .pago span{font-weight:800; color:var(--ink); font-size:19px;}
+  .pagos-row{display:flex; flex-wrap:wrap; justify-content:center; gap:12px;}
+  .pago-logo{width:104px; height:64px; background:#fff; border:1px solid var(--line); border-radius:12px; display:flex; align-items:center; justify-content:center; padding:9px; box-shadow:0 2px 8px rgba(20,90,50,.05);}
+  .pago-logo img{max-width:100%; max-height:100%; object-fit:contain; display:block;}
   .horario{padding:20px 22px; background:var(--green-l); border-radius:22px;}
   .horario h3{display:flex; align-items:center; gap:10px; color:var(--green-d); letter-spacing:2px; font-size:17px; text-transform:uppercase; margin-bottom:12px;}
   .horario h3 svg{width:22px; height:22px; stroke:var(--green-d); fill:none; stroke-width:2;}
@@ -124,7 +123,7 @@
         <div class="turno-box">
           <div class="section-title" id="turnoLabel" style="display:none">Turno actual</div>
           <div class="turno-num" id="turno" style="display:none"><small>CAJA</small>—</div>
-          <div class="turno-msg" id="turnoMsg">Espere a ser llamado</div>
+          <img class="espere-img" id="turnoMsg" src="/espere.png" alt="Espere a ser llamado" />
         </div>
 
         <div class="banner" id="banner" style="display:none">
@@ -145,9 +144,14 @@
         <div class="pagos card">
           <div class="pagos-title">Métodos de pago</div>
           <div class="pagos-row">
-            <div class="pago"><div class="pico"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div><span>Efectivo</span></div>
-            <div class="pago"><div class="pico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 9h20"/></svg></div><span>Tarjeta</span></div>
-            <div class="pago"><div class="pico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M20 14v0M17 20h4M20 17v4"/></svg></div><span>QR</span></div>
+            <div class="pago-logo"><img src="/pagos/visa.svg" alt="Visa" /></div>
+            <div class="pago-logo"><img src="/pagos/mastercard.svg" alt="Mastercard" /></div>
+            <div class="pago-logo"><img src="/pagos/amex.svg" alt="American Express" /></div>
+            <div class="pago-logo"><img src="/pagos/discover.svg" alt="Discover" /></div>
+            <div class="pago-logo"><img src="/pagos/apple-pay.svg" alt="Apple Pay" /></div>
+            <div class="pago-logo"><img src="/pagos/google-pay.svg" alt="Google Pay" /></div>
+            <div class="pago-logo"><img src="/pagos/athmovil.png" alt="ATH Móvil" /></div>
+            <div class="pago-logo"><img src="/pagos/cash.svg" alt="Efectivo" /></div>
           </div>
         </div>
       </div>

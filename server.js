@@ -42,11 +42,12 @@ function serveFile(req, res, fp) {
   res.writeHead(200, { "Content-Type": type, "Content-Length": stat.size, "Accept-Ranges": "bytes" });
   return fs.createReadStream(fp).pipe(res);
 }
-function servirEnRaiz(req, res, file) {
-  const base = path.basename(file);
-  for (const dir of [path.join(__dirname, "public"), __dirname]) {
-    const fp = path.join(dir, base);
-    if (base && fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(req, res, fp);
+function servirEnRaiz(req, res, ruta) {
+  const rel = decodeURIComponent(ruta).replace(/^\/+/, "");
+  if (rel.includes("..")) { res.writeHead(404); return res.end("No encontrado"); }
+  for (const dir of [__dirname, path.join(__dirname, "public")]) {
+    const fp = path.join(dir, rel);
+    if (rel && fp.startsWith(dir) && fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(req, res, fp);
   }
   res.writeHead(404); res.end("No encontrado");
 }
