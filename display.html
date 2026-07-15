@@ -249,11 +249,15 @@
       setTimeout(()=>{ if(mySeq===seq) idle(); }, 1500);  // vuelve al mensaje de espera
     }
     if(!("speechSynthesis" in window)){ setTimeout(terminar, 2500); return; }
+    // Un SOLO mensaje (evita que Chrome se trague la primera frase al encolar dos)
+    const texto = frase(caja) + ". Caja " + caja + ".";
+    const u=new SpeechSynthesisUtterance(texto);
+    if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95;
+    u.onend=terminar;
+    u.onerror=terminar;
     speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(frase(caja)); if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95; speechSynthesis.speak(u);
-    const u2=new SpeechSynthesisUtterance("Caja " + caja); if(voz)u2.voice=voz; u2.lang=u.lang; u2.rate=.95;
-    u2.onend=terminar;
-    speechSynthesis.speak(u2);
+    // pequeño respiro para que cancel() termine antes de hablar (bug de Chrome)
+    setTimeout(()=>{ if(mySeq===seq) speechSynthesis.speak(u); }, 80);
     clearTimeout(unduckTimer); unduckTimer=setTimeout(terminar, 9000);  // seguridad
   }
 
