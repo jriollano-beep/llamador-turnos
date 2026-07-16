@@ -212,10 +212,10 @@
   }
   idle();
 
-  // Baja/sube el volumen del video cuando hay anuncio (ducking)
+  // Pausa el video durante el anuncio (para no perder audio del video) y lo reanuda al terminar.
   let unduckTimer=null;
-  function duck(){ try{ promo.volume=0.12; }catch(e){} }
-  function unduck(){ try{ promo.volume=1; }catch(e){} }
+  function duck(){ try{ promo.pause(); }catch(e){} }
+  function unduck(){ try{ promo.volume=1; const p=promo.play(); if(p&&p.catch)p.catch(()=>{}); }catch(e){} }
 
   function frase(caja){ return "Próximo cliente, pase a la caja " + caja; }
 
