@@ -21,8 +21,8 @@
   .card{background:var(--card); border-radius:22px; box-shadow:0 8px 26px rgba(20,90,50,.06);}
 
   /* ---------- IZQUIERDA ---------- */
-  .left{display:flex; flex-direction:column; justify-content:center; gap:22px; min-height:0; overflow:hidden; contain:layout paint;}
-  .logo-img{width:min(100%,640px); height:auto; display:block;}
+  .left{display:flex; flex-direction:column; gap:18px; min-height:0; overflow:hidden; contain:layout paint;}
+  .logo-img{width:min(100%,600px); height:auto; display:block;}
   .logo-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; padding-top:0;}
   .logo{display:flex; align-items:center; gap:12px;}
   .logo .ja{background:var(--green); color:#fff; font-weight:900; font-size:34px; padding:6px 12px; border-radius:8px; letter-spacing:-1px; line-height:1;}
@@ -31,7 +31,7 @@
   .logo .tm{font-size:13px; vertical-align:super; color:var(--green);}
   .tagline{font-weight:800; letter-spacing:6px; font-size:22px; color:var(--ink); opacity:.8;}
 
-  .turno-box{flex:0 1 auto; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:6px; width:100%; text-align:center; overflow:hidden;}
+  .turno-box{flex:1 1 auto; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; padding:6px; width:100%; text-align:center; overflow:hidden;}
   .section-title{display:flex; align-items:center; gap:18px; color:var(--ink); font-weight:800; letter-spacing:4px; font-size:30px; text-transform:uppercase;}
   .section-title::before,.section-title::after{content:""; height:4px; width:66px; background:var(--green); border-radius:3px;}
   .turno-num{font-weight:900; color:var(--green); line-height:.78; font-size:min(34vw,360px); text-align:center; text-shadow:0 0 22px rgba(31,162,78,.35), 0 8px 40px rgba(31,162,78,.25); white-space:nowrap; transform:translateZ(0); will-change:transform;}
@@ -137,7 +137,7 @@
           <img class="espere-img" id="turnoMsg" src="/espere.png" alt="Espere a ser llamado" />
         </div>
 
-        <div class="banner" id="banner" style="display:none">
+        <div class="banner" id="banner" style="visibility:hidden">
           <svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 4V6L7 10H3zm12.5 2a3.5 3.5 0 00-2-3.15v6.3a3.5 3.5 0 002-3.15z"/></svg>
           <span id="bannerTxt">Por favor, pase a la caja indicada.</span>
         </div>
@@ -208,7 +208,7 @@
     flechaIzq.classList.remove("show");
     flechaDer.classList.remove("show");
     turnoLabel.style.display="none";
-    banner.style.display="none";
+    banner.style.display=""; banner.style.visibility="hidden";  // reserva el espacio, invisible
   }
   idle();
 
@@ -271,8 +271,8 @@
     const izq = CAJAS_IZQUIERDA.indexOf(String(caja)) !== -1;
     flechaIzq.classList.toggle("show", izq);
     flechaDer.classList.toggle("show", !izq);
-    banner.style.display="";
-    duck();                                  // baja el volumen del video
+    banner.style.display=""; banner.style.visibility="visible";
+    duck();                                  // pausa el video durante el anuncio
     chime(); setTimeout(()=>hablar(caja, mySeq), 350);
   }
 
