@@ -1,0 +1,7 @@
+VIDEOS ESTÁTICOS (con música) PARA INTERCALAR ENTRE LOS PROMOCIONALES
+=====================================================================
+- Pon aquí los videos estáticos que quieres intercalar entre los promocionales.
+- Si esta carpeta está VACÍA: la pantalla solo rota los promocionales (como siempre).
+- Si pones UNO O MÁS: se intercalan -> promo, estático, promo, estático...
+- Los promocionales siguen sueltos en la carpeta "videos".
+- Para publicar: sube estos archivos a la carpeta videos/entre en GitHub también.
