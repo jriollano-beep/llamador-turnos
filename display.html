@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano · v14</title>
+<title>Turnos — JA Riollano · v15</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -242,32 +242,8 @@
       [880,1175].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type="sine";o.connect(g);g.connect(ac.destination);const t=ac.currentTime+i*.18;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+.4);o.start(t);o.stop(t+.42);});
     }catch(e){}
   }
-  function hablar(caja, mySeq){
-    function terminar(){
-      clearTimeout(unduckTimer);
-      if(mySeq!==seq) return;              // llegó un llamado más nuevo: no tocar
-      unduck();                            // vuelve el volumen del video
-      setTimeout(()=>{ if(mySeq===seq) idle(); }, 1500);  // vuelve al mensaje de espera
-    }
-    if(!("speechSynthesis" in window)){ setTimeout(terminar, 2500); return; }
-    // Un SOLO mensaje, diciendo el número una sola vez
-    const texto = frase(caja) + ".";
-    const u=new SpeechSynthesisUtterance(texto);
-    if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95;
-    u.onend=terminar;
-    u.onerror=terminar;
-    speechSynthesis.cancel();
-    // pequeño respiro para que cancel() termine antes de hablar (bug de Chrome)
-    setTimeout(()=>{ if(mySeq===seq) speechSynthesis.speak(u); }, 80);
-    clearTimeout(unduckTimer); unduckTimer=setTimeout(terminar, 9000);  // seguridad
-  }
-
-  function anunciar(caja){
-    // Ignora un mismo llamado duplicado que llegue casi enseguida (evita audio repetido)
-    const ahora = Date.now();
-    if(String(caja)===ultCaja && (ahora-ultT)<2500) return;
-    ultCaja=String(caja); ultT=ahora;
-    const mySeq=++seq;
+  // Muestra el número, la flecha y el banner de una caja
+  function mostrar(caja){
     turnoMsg.style.display="none";
     turnoLabel.style.display="";
     turnoFila.style.display="flex";
@@ -277,8 +253,44 @@
     flechaIzq.classList.toggle("show", izq);
     flechaDer.classList.toggle("show", !izq);
     banner.style.display=""; banner.style.visibility="visible";
-    duck();                                  // pausa el video durante el anuncio
-    chime(); setTimeout(()=>hablar(caja, mySeq), 350);
+  }
+
+  // Dice el mensaje de la caja; llama onDone al terminar (o por seguridad a los 9s)
+  function hablar(caja, onDone){
+    let listo=false, seg=null;
+    function fin(){ if(listo) return; listo=true; if(seg) clearTimeout(seg); onDone(); }
+    if(!("speechSynthesis" in window)){ seg=setTimeout(fin, 2500); return; }
+    const u=new SpeechSynthesisUtterance(frase(caja) + ".");  // número una sola vez
+    if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95;
+    u.onend=fin; u.onerror=fin;
+    speechSynthesis.cancel();
+    setTimeout(()=>{ try{ speechSynthesis.speak(u); }catch(e){ fin(); } }, 80);  // respiro tras cancel()
+    seg=setTimeout(fin, 9000);  // seguridad si la voz no termina
+  }
+
+  // ---- Cola de llamados: no se interrumpen, esperan su turno ----
+  let cola=[], ocupado=false;
+  function procesar(){
+    if(ocupado) return;
+    if(cola.length===0){ idle(); unduck(); return; }  // no hay más: vuelve a espera y reanuda el video
+    ocupado=true;
+    const caja=cola.shift();
+    mostrar(caja);
+    duck();                                  // pausa el video mientras dura la fila de anuncios
+    chime();
+    setTimeout(()=>hablar(caja, ()=>{
+      ocupado=false;
+      setTimeout(procesar, 900);             // pausita entre un llamado y el siguiente
+    }), 350);
+  }
+
+  // Entrada desde el SSE: encola el llamado (ignora un duplicado del mismo casi enseguida)
+  function anunciar(caja){
+    const c=String(caja), ahora=Date.now();
+    if(c===ultCaja && (ahora-ultT)<2500) return;   // mismo llamado repetido enseguida -> ignora
+    ultCaja=c; ultT=ahora;
+    cola.push(c);
+    procesar();
   }
 
   // ---- Videos: promocionales (/videos) intercalados con estáticos (/videos/entre) ----
