@@ -27,7 +27,13 @@ function broadcast(msg) {
 // Sirve un archivo con soporte de "Range" (necesario para video)
 function serveFile(req, res, fp) {
   const stat = fs.statSync(fp);
-  const type = MIME[path.extname(fp).toLowerCase()] || "application/octet-stream";
+  const ext = path.extname(fp).toLowerCase();
+  const type = MIME[ext] || "application/octet-stream";
+  // Evita que el navegador del monitor muestre versiones viejas guardadas en caché.
+  // HTML nunca se cachea; imágenes/logos se revalidan; los videos sí se cachean.
+  const noCache = { "Cache-Control": "no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0" };
+  const esVideo = (ext === ".mp4" || ext === ".webm");
+  const cache = esVideo ? {} : noCache;
   const range = req.headers.range;
   if (range) {
     const m = /bytes=(\d*)-(\d*)/.exec(range) || [];
@@ -36,10 +42,10 @@ function serveFile(req, res, fp) {
     if (isNaN(start) || isNaN(end) || start > end || start >= stat.size) {
       res.writeHead(416, { "Content-Range": "bytes */" + stat.size }); return res.end();
     }
-    res.writeHead(206, { "Content-Type": type, "Content-Range": "bytes " + start + "-" + end + "/" + stat.size, "Accept-Ranges": "bytes", "Content-Length": end - start + 1 });
+    res.writeHead(206, Object.assign({ "Content-Type": type, "Content-Range": "bytes " + start + "-" + end + "/" + stat.size, "Accept-Ranges": "bytes", "Content-Length": end - start + 1 }, cache));
     return fs.createReadStream(fp, { start, end }).pipe(res);
   }
-  res.writeHead(200, { "Content-Type": type, "Content-Length": stat.size, "Accept-Ranges": "bytes" });
+  res.writeHead(200, Object.assign({ "Content-Type": type, "Content-Length": stat.size, "Accept-Ranges": "bytes" }, cache));
   return fs.createReadStream(fp).pipe(res);
 }
 function servirEnRaiz(req, res, ruta) {
