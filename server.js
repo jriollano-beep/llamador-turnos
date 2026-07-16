@@ -89,23 +89,35 @@ const server = http.createServer((req, res) => {
   }
 
   // Lista automatica de todos los videos de la carpeta /videos
-  if (p === "/videos.json") {
+  // Lista los videos de una carpeta (no recursivo)
+  function listarVideos(dir, prefijoUrl) {
     let lista = [];
     try {
-      if (fs.existsSync(VIDEOS_DIR)) {
-        lista = fs.readdirSync(VIDEOS_DIR)
+      if (fs.existsSync(dir)) {
+        lista = fs.readdirSync(dir)
           .filter(f => /\.(mp4|webm)$/i.test(f))
           .sort()
-          .map(f => "/videos/" + encodeURIComponent(f));
+          .map(f => prefijoUrl + encodeURIComponent(f));
       }
     } catch (e) {}
+    return lista;
+  }
+  // Videos promocionales (sueltos en /videos)
+  if (p === "/videos.json") {
     res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" });
-    return res.end(JSON.stringify(lista));
+    return res.end(JSON.stringify(listarVideos(VIDEOS_DIR, "/videos/")));
+  }
+  // Videos "de entre medio" (estáticos con música) -> carpeta /videos/entre
+  if (p === "/videos-entre.json") {
+    res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*", "Cache-Control": "no-store" });
+    return res.end(JSON.stringify(listarVideos(path.join(VIDEOS_DIR, "entre"), "/videos/entre/")));
   }
 
-  // Servir cada archivo de video
+  // Servir cada archivo de video (permite la subcarpeta /videos/entre, con protección de rutas)
   if (p.startsWith("/videos/")) {
-    const fp = path.join(VIDEOS_DIR, path.basename(decodeURIComponent(p)));
+    const rel = decodeURIComponent(p.slice("/videos/".length));
+    if (rel.includes("..")) { res.writeHead(404); return res.end("No encontrado"); }
+    const fp = path.join(VIDEOS_DIR, rel);
     if (fp.startsWith(VIDEOS_DIR) && fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(req, res, fp);
     res.writeHead(404); return res.end("No encontrado");
   }

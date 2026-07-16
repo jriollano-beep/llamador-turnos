@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano · v13</title>
+<title>Turnos — JA Riollano · v14</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -281,17 +281,28 @@
     chime(); setTimeout(()=>hablar(caja, mySeq), 350);
   }
 
-  // ---- Video promocional: rota TODOS los videos de la carpeta /videos ----
-  // Para agregar/quitar: solo subes o borras archivos MP4 en esa carpeta.
+  // ---- Videos: promocionales (/videos) intercalados con estáticos (/videos/entre) ----
+  // Promos sueltos en /videos.  Estáticos con música en /videos/entre.
+  // Si /videos/entre está vacía -> solo rotan los promos (como antes).
+  // Si hay uno o más -> se intercalan: promo, estático, promo, estático...
   (function(){
     const ph=document.getElementById("videoPh");
-    let lista=[], idx=-1;
-    async function cargar(){ try{ const r=await fetch("/videos.json",{cache:"no-store"}); const l=await r.json(); if(Array.isArray(l)) lista=l; }catch(e){} }
+    let promos=[], entre=[], pi=-1, ei=-1, tocaEntre=false;
+    async function traer(url){ try{ const r=await fetch(url,{cache:"no-store"}); const l=await r.json(); return Array.isArray(l)?l:[]; }catch(e){ return []; } }
+    async function cargar(){ promos=await traer("/videos.json"); entre=await traer("/videos-entre.json"); }
     function siguiente(){
-      if(!lista.length){ ph.style.display=""; promo.removeAttribute("src"); return; }
+      const hayP=promos.length>0, hayE=entre.length>0;
+      if(!hayP && !hayE){ ph.style.display=""; promo.removeAttribute("src"); return; }
       ph.style.display="none";
-      idx=(idx+1)%lista.length;
-      promo.src=lista[idx];
+      let src;
+      if(tocaEntre && hayE){                 // toca un estático de entre medio
+        ei=(ei+1)%entre.length; src=entre[ei]; tocaEntre=false;
+      } else if(hayP){                        // toca un promo (y luego un estático si hay)
+        pi=(pi+1)%promos.length; src=promos[pi]; tocaEntre=hayE;
+      } else {                                // solo hay estáticos
+        ei=(ei+1)%entre.length; src=entre[ei];
+      }
+      promo.src=src;
       promo.play().catch(()=>{});
     }
     promo.addEventListener("ended", async ()=>{ await cargar(); siguiente(); });
