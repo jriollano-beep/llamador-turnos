@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano · v9</title>
+<title>Turnos — JA Riollano · v10</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -91,15 +91,19 @@
   .horario .v{color:var(--muted); font-size:15px;}
   .horario hr{border:none; border-top:1px solid #d3e6da; margin:10px 0;}
 
-  /* ---------- FOOTER ---------- */
-  .footer{background:var(--green); color:#fff; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:26px 46px;}
-  .foot-date{display:flex; align-items:center; gap:16px;}
-  .foot-date svg{width:44px; height:44px; stroke:#fff; fill:none; stroke-width:2;}
-  .foot-date .d{font-weight:800; font-size:26px;}
-  .foot-date .t{font-size:22px; opacity:.9;}
-  .foot-mid{text-align:center;}
-  .foot-mid .a{font-weight:800; font-size:34px;}
-  .foot-right{display:flex; align-items:center; justify-content:flex-end; gap:14px; font-weight:800; font-size:26px;}
+  /* ---------- FOOTER (métodos de pago) ---------- */
+  .footer{background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; padding:14px 30px;}
+  .pagos-strip{display:flex; flex-wrap:nowrap; justify-content:center; align-items:center; gap:12px; width:100%;}
+  .pagos-strip .pago-logo{width:118px; height:72px;}
+
+  /* ---------- Tarjeta de info (gracias / hora / web) ---------- */
+  .info{padding:20px 22px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; flex:0 0 auto;}
+  .info-gracias{font-weight:800; font-size:32px; color:var(--green-d);}
+  .info-clock{display:flex; align-items:center; gap:12px; color:var(--ink);}
+  .info-clock svg{width:40px; height:40px; stroke:var(--green); fill:none; stroke-width:2;}
+  .info-clock .d{font-weight:800; font-size:24px; line-height:1.1;}
+  .info-clock .t{font-size:20px; color:var(--muted); line-height:1.1;}
+  .info-web{font-weight:800; font-size:24px; color:var(--green);}
 
   /* Overlay activar */
   #start{position:fixed; inset:0; background:var(--bg); z-index:60; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px;}
@@ -152,35 +156,30 @@
           </div>
         </div>
 
-        <div class="pagos card">
-          <div class="pagos-title">Métodos de pago</div>
-          <div class="pagos-row">
-            <div class="pago-logo"><img src="/pagos/money.svg" alt="Efectivo" /></div>
-            <div class="pago-logo"><img src="/pagos/athmovil.png" alt="ATH Móvil" /></div>
-            <div class="pago-logo"><img src="/pagos/apple-pay.svg" alt="Apple Pay" /></div>
-            <div class="pago-logo"><img src="/pagos/google-pay.svg" alt="Google Pay" /></div>
-            <div class="pago-logo"><img src="/pagos/visa.svg" alt="Visa" /></div>
-            <div class="pago-logo"><img src="/pagos/mastercard.svg" alt="Mastercard" /></div>
-            <div class="pago-logo"><img src="/pagos/amex.svg" alt="American Express" /></div>
-            <div class="pago-logo"><img src="/pagos/discover.svg" alt="Discover" /></div>
-            <div class="pago-logo"><img src="/pagos/giftcard.jpg" alt="Gift Card" /></div>
-            <div class="pago-logo"><img src="/pagos/tarjeta-unica.png" alt="Tarjeta Única" /></div>
+        <div class="info card">
+          <div class="info-gracias">¡Gracias por su visita!</div>
+          <div class="info-clock">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <div style="text-align:left"><div class="d" id="fDate">—</div><div class="t" id="fTime">—</div></div>
           </div>
+          <div class="info-web">jariollano.com</div>
         </div>
       </div>
     </div>
 
-    <!-- FOOTER -->
+    <!-- FOOTER: métodos de pago -->
     <div class="footer">
-      <div class="foot-date">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-        <div><div class="d" id="fDate">—</div><div class="t" id="fTime">—</div></div>
-      </div>
-      <div class="foot-mid">
-        <div class="a">¡Gracias por su visita!</div>
-      </div>
-      <div class="foot-right">
-        <span>jariollano.com</span>
+      <div class="pagos-strip">
+        <div class="pago-logo"><img src="/pagos/money.svg" alt="Efectivo" /></div>
+        <div class="pago-logo"><img src="/pagos/athmovil.png" alt="ATH Móvil" /></div>
+        <div class="pago-logo"><img src="/pagos/apple-pay.svg" alt="Apple Pay" /></div>
+        <div class="pago-logo"><img src="/pagos/google-pay.svg" alt="Google Pay" /></div>
+        <div class="pago-logo"><img src="/pagos/visa.svg" alt="Visa" /></div>
+        <div class="pago-logo"><img src="/pagos/mastercard.svg" alt="Mastercard" /></div>
+        <div class="pago-logo"><img src="/pagos/amex.svg" alt="American Express" /></div>
+        <div class="pago-logo"><img src="/pagos/discover.svg" alt="Discover" /></div>
+        <div class="pago-logo"><img src="/pagos/giftcard.jpg" alt="Gift Card" /></div>
+        <div class="pago-logo"><img src="/pagos/tarjeta-unica.png" alt="Tarjeta Única" /></div>
       </div>
     </div>
   </div>
