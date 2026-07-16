@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano</title>
+<title>Turnos — JA Riollano · v8</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -21,8 +21,8 @@
   .card{background:var(--card); border-radius:22px; box-shadow:0 8px 26px rgba(20,90,50,.06);}
 
   /* ---------- IZQUIERDA ---------- */
-  .left{display:flex; flex-direction:column; gap:18px; min-height:0; overflow:hidden; contain:layout paint;}
-  .logo-img{width:min(100%,600px); height:auto; display:block;}
+  .left{display:flex; flex-direction:column; gap:14px; min-height:0; overflow:hidden; contain:layout paint;}
+  .logo-img{width:min(100%,480px); height:auto; display:block;}
   .logo-wrap{display:flex; flex-direction:column; align-items:center; gap:10px; padding-top:0;}
   .logo{display:flex; align-items:center; gap:12px;}
   .logo .ja{background:var(--green); color:#fff; font-weight:900; font-size:34px; padding:6px 12px; border-radius:8px; letter-spacing:-1px; line-height:1;}
@@ -49,9 +49,9 @@
   @keyframes pulseDer{0%,100%{transform:translateX(-9px); opacity:.5;} 50%{transform:translateX(9px); opacity:1;}}
   .turno-idle{color:var(--muted); opacity:.5;}
   .turno-msg{font-weight:900; color:#37474f; font-size:clamp(2.9rem,7.6vw,6rem); text-align:center; line-height:1.15; padding:0 10px; width:100%;}
-  .espere-img{max-width:100%; max-height:56vh; min-height:0; object-fit:contain; display:block;}
+  .espere-img{max-width:100%; max-height:100%; min-height:0; object-fit:contain; display:block;}
 
-  .banner{display:flex; align-items:center; justify-content:center; gap:16px; background:var(--green); color:#fff; font-weight:800; font-size:34px; padding:26px 28px; border-radius:18px; width:100%; margin-top:6px;}
+  .banner{display:flex; align-items:center; justify-content:center; gap:16px; background:var(--green); color:#fff; font-weight:800; font-size:30px; padding:20px 26px; border-radius:18px; width:100%; margin-top:4px;}
   .banner svg{width:42px; height:42px; fill:#fff; flex:0 0 auto;}
 
   .areas{display:flex; justify-content:space-around; gap:8px; padding:6px 4px 2px;}
@@ -200,6 +200,7 @@
   const fTime=document.getElementById("fTime");
   const promo=document.getElementById("promo");
   let seq=0;
+  let ultCaja=null, ultT=0;   // para ignorar llamados duplicados (evita audio repetido)
 
   // Estado en espera: muestra "Espere a ser llamado", oculta el número
   function idle(){
@@ -249,8 +250,8 @@
       setTimeout(()=>{ if(mySeq===seq) idle(); }, 1500);  // vuelve al mensaje de espera
     }
     if(!("speechSynthesis" in window)){ setTimeout(terminar, 2500); return; }
-    // Un SOLO mensaje (evita que Chrome se trague la primera frase al encolar dos)
-    const texto = frase(caja) + ". Caja " + caja + ".";
+    // Un SOLO mensaje, diciendo el número una sola vez
+    const texto = frase(caja) + ".";
     const u=new SpeechSynthesisUtterance(texto);
     if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95;
     u.onend=terminar;
@@ -262,6 +263,10 @@
   }
 
   function anunciar(caja){
+    // Ignora un mismo llamado duplicado que llegue casi enseguida (evita audio repetido)
+    const ahora = Date.now();
+    if(String(caja)===ultCaja && (ahora-ultT)<2500) return;
+    ultCaja=String(caja); ultT=ahora;
     const mySeq=++seq;
     turnoMsg.style.display="none";
     turnoLabel.style.display="";
