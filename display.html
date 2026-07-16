@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano · v15</title>
+<title>Turnos — JA Riollano · v16</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -269,26 +269,27 @@
   }
 
   // ---- Cola de llamados: no se interrumpen, esperan su turno ----
-  let cola=[], ocupado=false;
+  let cola=[], ocupado=false, cajaActual=null;
   function procesar(){
     if(ocupado) return;
-    if(cola.length===0){ idle(); unduck(); return; }  // no hay más: vuelve a espera y reanuda el video
+    if(cola.length===0){ cajaActual=null; idle(); unduck(); return; }  // no hay más: vuelve a espera y reanuda el video
     ocupado=true;
     const caja=cola.shift();
+    cajaActual=caja;
     mostrar(caja);
     duck();                                  // pausa el video mientras dura la fila de anuncios
     chime();
     setTimeout(()=>hablar(caja, ()=>{
-      ocupado=false;
+      ocupado=false; cajaActual=null;
       setTimeout(procesar, 900);             // pausita entre un llamado y el siguiente
     }), 350);
   }
 
-  // Entrada desde el SSE: encola el llamado (ignora un duplicado del mismo casi enseguida)
+  // Entrada desde el SSE: encola el llamado.
+  // No agrega una caja que YA está en la fila o que está sonando en ese momento.
   function anunciar(caja){
-    const c=String(caja), ahora=Date.now();
-    if(c===ultCaja && (ahora-ultT)<2500) return;   // mismo llamado repetido enseguida -> ignora
-    ultCaja=c; ultT=ahora;
+    const c=String(caja);
+    if(cola.indexOf(c)!==-1 || c===cajaActual) return;   // ya está en fila o sonando -> ignora
     cola.push(c);
     procesar();
   }
