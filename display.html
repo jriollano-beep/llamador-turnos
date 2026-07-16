@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano · v11</title>
+<title>Turnos — JA Riollano · v12</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -99,9 +99,11 @@
   /* ---------- Tarjeta de info (gracias / hora / web) ---------- */
   .info{padding:22px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; flex:0 0 auto;}
   .info-gracias{font-weight:800; font-size:42px; color:var(--green-d); line-height:1.1;}
-  .info-clock{display:flex; align-items:center; gap:12px; color:var(--ink); font-weight:700; font-size:22px;}
+  .info-clock{display:flex; align-items:center; gap:12px; color:var(--ink); font-size:22px;}
   .info-clock svg{width:38px; height:38px; stroke:var(--green); fill:none; stroke-width:2; flex:0 0 auto;}
-  .info-clock .sep{color:var(--muted); margin:0 2px;}
+  .info-clock .sep{color:var(--muted); margin:0 4px;}
+  .info-clock #fTime{font-weight:700; color:var(--muted); font-size:21px;}
+  .info-clock #fDate{font-weight:800; color:var(--ink); font-size:25px;}
   .info-web{font-weight:800; font-size:24px; color:var(--green);}
 
   /* Overlay activar */
