@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano · v10</title>
+<title>Turnos — JA Riollano · v11</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -92,17 +92,16 @@
   .horario hr{border:none; border-top:1px solid #d3e6da; margin:10px 0;}
 
   /* ---------- FOOTER (métodos de pago) ---------- */
-  .footer{background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; padding:14px 30px;}
-  .pagos-strip{display:flex; flex-wrap:nowrap; justify-content:center; align-items:center; gap:12px; width:100%;}
+  .footer{background:var(--green); color:#fff; display:flex; align-items:center; justify-content:center; padding:14px 55px;}
+  .pagos-strip{display:flex; flex-wrap:nowrap; justify-content:space-between; align-items:center; gap:10px; width:100%;}
   .pagos-strip .pago-logo{width:118px; height:72px;}
 
   /* ---------- Tarjeta de info (gracias / hora / web) ---------- */
-  .info{padding:20px 22px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; flex:0 0 auto;}
-  .info-gracias{font-weight:800; font-size:32px; color:var(--green-d);}
-  .info-clock{display:flex; align-items:center; gap:12px; color:var(--ink);}
-  .info-clock svg{width:40px; height:40px; stroke:var(--green); fill:none; stroke-width:2;}
-  .info-clock .d{font-weight:800; font-size:24px; line-height:1.1;}
-  .info-clock .t{font-size:20px; color:var(--muted); line-height:1.1;}
+  .info{padding:22px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center; flex:0 0 auto;}
+  .info-gracias{font-weight:800; font-size:42px; color:var(--green-d); line-height:1.1;}
+  .info-clock{display:flex; align-items:center; gap:12px; color:var(--ink); font-weight:700; font-size:22px;}
+  .info-clock svg{width:38px; height:38px; stroke:var(--green); fill:none; stroke-width:2; flex:0 0 auto;}
+  .info-clock .sep{color:var(--muted); margin:0 2px;}
   .info-web{font-weight:800; font-size:24px; color:var(--green);}
 
   /* Overlay activar */
@@ -160,7 +159,7 @@
           <div class="info-gracias">¡Gracias por su visita!</div>
           <div class="info-clock">
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-            <div style="text-align:left"><div class="d" id="fDate">—</div><div class="t" id="fTime">—</div></div>
+            <span id="fTime">—</span><span class="sep">·</span><span id="fDate">—</span>
           </div>
           <div class="info-web">jariollano.com</div>
         </div>
@@ -309,10 +308,25 @@
   conectar();
   setInterval(()=>{ fetch("/health").catch(()=>{}); },240000);
 
+  // Amplifica el audio del video para igualarlo con la voz del anuncio
+  const GANANCIA_VIDEO = 1.9;
+  function amplificarVideo(){
+    try{
+      const ac = window._ac || (window._ac = new (window.AudioContext||window.webkitAudioContext)());
+      if(!promo._gainSet){
+        const src = ac.createMediaElementSource(promo);
+        const g = ac.createGain();
+        g.gain.value = GANANCIA_VIDEO;
+        src.connect(g); g.connect(ac.destination);
+        promo._gainSet = true;
+      }
+    }catch(e){}
+  }
+
   document.getElementById("startBtn").addEventListener("click",()=>{
-    try{new (window.AudioContext||window.webkitAudioContext)().resume();}catch(e){}
+    try{ const ac=window._ac||(window._ac=new (window.AudioContext||window.webkitAudioContext)()); ac.resume(); }catch(e){}
     if("speechSynthesis" in window){const w=new SpeechSynthesisUtterance(" ");speechSynthesis.speak(w);}
-    try{ promo.muted=false; promo.volume=1; promo.play(); }catch(e){}   // activa el audio del video
+    try{ promo.muted=false; promo.volume=1; amplificarVideo(); promo.play(); }catch(e){}   // activa y sube el audio del video
     document.getElementById("start").style.display="none";
     if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(()=>{});
   });
