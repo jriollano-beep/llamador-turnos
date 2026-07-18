@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Turnos — JA Riollano · v17</title>
+<title>Turnos — JA Riollano · v18</title>
 <style>
   :root{
     --green:#1FA24E; --green-d:#15803D; --green-l:#EAF5EE;
@@ -256,41 +256,50 @@
     banner.style.display=""; banner.style.visibility="visible";
   }
 
-  // Dice el mensaje de la caja; llama onDone al terminar (o por seguridad a los 9s)
+  // Dice el mensaje de la caja; llama onDone al terminar (o por seguridad)
   function hablar(caja, onDone){
     let listo=false, seg=null;
     function fin(){ if(listo) return; listo=true; if(seg) clearTimeout(seg); onDone(); }
-    if(!("speechSynthesis" in window)){ seg=setTimeout(fin, 2500); return; }
+    if(!("speechSynthesis" in window)){ seg=setTimeout(fin, 2000); return; }
     const u=new SpeechSynthesisUtterance(frase(caja) + ".");  // número una sola vez
     if(voz)u.voice=voz; u.lang=(voz&&voz.lang)||"es-ES"; u.rate=.95;
     u.onend=fin; u.onerror=fin;
-    speechSynthesis.cancel();
-    setTimeout(()=>{ try{ speechSynthesis.speak(u); }catch(e){ fin(); } }, 80);  // respiro tras cancel()
-    seg=setTimeout(fin, 9000);  // seguridad si la voz no termina
+    try{ speechSynthesis.cancel(); speechSynthesis.resume(); }catch(e){}  // limpia estado / recupera si quedó en pausa
+    setTimeout(()=>{ try{ speechSynthesis.speak(u); }catch(e){ fin(); } }, 90);
+    seg=setTimeout(fin, 6000);  // seguridad si la voz no termina
   }
 
-  // ---- Cola de llamados: no se interrumpen, esperan su turno ----
-  let cola=[], ocupado=false, cajaActual=null;
+  // ---- Cola de llamados: no se interrumpen; ritmo estable aunque se presione muchas veces ----
+  let cola=[], ocupado=false, cajaActual=null, ultimo={};
+  const DUR_MIN=3500;    // cada anuncio dura al menos esto en pantalla (evita cortes/loops por mashing)
+  const COOLDOWN=5000;   // no repetir la MISMA caja hasta que pasen estos ms desde su último llamado
+
   function procesar(){
     if(ocupado) return;
-    if(cola.length===0){ cajaActual=null; idle(); unduck(); return; }  // no hay más: vuelve a espera y reanuda el video
+    if(cola.length===0){ cajaActual=null; idle(); unduck(); return; }  // fila vacía: vuelve a espera y reanuda el video
     ocupado=true;
     const caja=cola.shift();
     cajaActual=caja;
+    ultimo[caja]=Date.now();
     mostrar(caja);
     duck();                                  // pausa el video mientras dura la fila de anuncios
     chime();
-    setTimeout(()=>hablar(caja, ()=>{
+    let vozLista=false, tiempoListo=false;
+    function avanzar(){
+      if(!(vozLista && tiempoListo)) return;   // espera a que la voz termine Y a que pase el tiempo mínimo
       ocupado=false; cajaActual=null;
-      setTimeout(procesar, 900);             // pausita entre un llamado y el siguiente
-    }), 350);
+      setTimeout(procesar, 400);
+    }
+    setTimeout(()=>{ tiempoListo=true; avanzar(); }, DUR_MIN);              // tiempo mínimo en pantalla
+    setTimeout(()=>hablar(caja, ()=>{ vozLista=true; avanzar(); }), 350);  // hablar
   }
 
   // Entrada desde el SSE: encola el llamado.
-  // No agrega una caja que YA está en la fila o que está sonando en ese momento.
+  // No agrega una caja que ya está en la fila, sonando, o que se llamó hace muy poco (anti-mashing).
   function anunciar(caja){
-    const c=String(caja);
-    if(cola.indexOf(c)!==-1 || c===cajaActual) return;   // ya está en fila o sonando -> ignora
+    const c=String(caja), ahora=Date.now();
+    if(c===cajaActual || cola.indexOf(c)!==-1) return;         // ya en fila o sonando
+    if(ultimo[c] && (ahora-ultimo[c])<COOLDOWN) return;        // se llamó hace muy poco -> ignora
     cola.push(c);
     procesar();
   }
