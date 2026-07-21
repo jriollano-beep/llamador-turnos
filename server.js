@@ -29,11 +29,29 @@ function serveFile(req, res, fp) {
   const stat = fs.statSync(fp);
   const ext = path.extname(fp).toLowerCase();
   const type = MIME[ext] || "application/octet-stream";
-  // Evita que el navegador del monitor muestre versiones viejas guardadas en caché.
-  // HTML nunca se cachea; imágenes/logos se revalidan; los videos sí se cachean.
-  const noCache = { "Cache-Control": "no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0" };
   const esVideo = (ext === ".mp4" || ext === ".webm");
-  const cache = esVideo ? {} : noCache;
+  const esHtml = (ext === ".html");
+  const lastMod = stat.mtime.toUTCString();
+  const etag = '"' + stat.size + '-' + Math.round(stat.mtimeMs) + '"';
+
+  // Caché:
+  //  - HTML: nunca (para que los cambios se vean enseguida).
+  //  - Videos: se guardan en el navegador (evita re-descargarlos en cada vuelta del loop = mucho ancho de banda).
+  //  - Imágenes: se guardan un rato, con revalidación.
+  let cache;
+  if (esHtml) cache = { "Cache-Control": "no-store, must-revalidate" };
+  else if (esVideo) cache = { "Cache-Control": "public, max-age=86400", "Last-Modified": lastMod, "ETag": etag };
+  else cache = { "Cache-Control": "public, max-age=3600", "Last-Modified": lastMod, "ETag": etag };
+
+  // Revalidación: si el navegador ya tiene la versión actual, respondemos 304 (sin cuerpo -> casi 0 ancho de banda)
+  if (!esHtml) {
+    const inm = req.headers["if-none-match"];
+    const ims = req.headers["if-modified-since"];
+    const igualEtag = inm && inm.indexOf(etag) !== -1;
+    const noModificado = ims && (new Date(ims).getTime() >= Math.floor(stat.mtimeMs / 1000) * 1000);
+    if (igualEtag || noModificado) { res.writeHead(304, cache); return res.end(); }
+  }
+
   const range = req.headers.range;
   if (range) {
     const m = /bytes=(\d*)-(\d*)/.exec(range) || [];
